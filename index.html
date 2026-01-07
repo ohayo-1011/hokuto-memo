@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>北斗メモ - 実戦記録</title>
+    <meta name="description" content="北斗の拳スマスロ実戦メモアプリ。当選契機・小役をワンタップ記録。">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- OGP Settings -->
+    <meta property="og:title" content="北斗メモ - スマスロ北斗の拳 実戦記録アプリ">
+    <meta property="og:description" content="当選契機や小役確率をワンタップで記録！設定判別要素も搭載した、北斗打ちのための実戦サポートツール。">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://raw.githubusercontent.com/antigravity-assets/hokuto-memo/main/ogp.png">
+    <!-- デプロイ後に差し替え推奨 -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="北斗メモ - スマスロ北斗の拳 実戦記録アプリ">
+    <meta name="twitter:description" content="パチスロ北斗の拳の実戦データをスマホで簡単記録。設定推測に役立つモード別当選率なども掲載！">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1>🌟 北斗メモ</h1>
+            <div class="header-actions">
+                <button class="icon-btn" id="historyBtn" title="履歴">📋</button>
+                <button class="icon-btn" id="newSessionBtn" title="新規実戦">➕</button>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="main">実戦</button>
+            <button class="tab-btn" data-tab="triggers">当選履歴</button>
+            <button class="tab-btn" data-tab="summary">結果</button>
+            <button class="tab-btn" data-tab="history">履歴</button>
+        </nav>
+
+        <!-- メイン画面（実戦中） -->
+        <section class="tab-content active" id="mainTab">
+            <!-- ステータスバー -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">総G数</span>
+                    <div class="game-input-group">
+                        <button class="game-btn minus" id="gamesMinus">−</button>
+                        <input type="number" id="totalGames" value="0" min="0">
+                        <button class="game-btn plus" id="gamesPlus">+</button>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">AT初当たり</span>
+                    <span class="status-value highlight" id="atCount">0</span>
+                </div>
+            </div>
+
+            <!-- モード選択 -->
+            <div class="mode-section">
+                <span class="section-label">モード選択</span>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" data-mode="normal">通常</button>
+                    <button class="mode-btn heaven" data-mode="heaven">天国</button>
+                    <button class="mode-btn hell" data-mode="hell">地獄</button>
+                </div>
+            </div>
+
+            <!-- 当選契機ボタン -->
+            <div class="trigger-section">
+                <span class="section-label">当選契機をタップ</span>
+                <div class="trigger-grid">
+                    <button class="trigger-btn mystery" data-trigger="mystery">
+                        <span class="trigger-icon">❓</span>
+                        <span class="trigger-name">謎当たり</span>
+                    </button>
+                    <button class="trigger-btn weak-cherry" data-trigger="weak_cherry">
+                        <span class="trigger-icon">🍒</span>
+                        <span class="trigger-name">弱チェリー</span>
+                    </button>
+                    <button class="trigger-btn weak-watermelon" data-trigger="weak_watermelon">
+                        <span class="trigger-icon">🍉</span>
+                        <span class="trigger-name">弱スイカ</span>
+                    </button>
+                    <button class="trigger-btn strong-watermelon" data-trigger="strong_watermelon">
+                        <span class="trigger-icon">🍉</span>
+                        <span class="trigger-name">強スイカ</span>
+                    </button>
+                    <button class="trigger-btn mid-cherry" data-trigger="mid_cherry">
+                        <span class="trigger-icon">🍒🍒</span>
+                        <span class="trigger-name">中段チェリー</span>
+                    </button>
+                    <button class="trigger-btn chance" data-trigger="chance">
+                        <span class="trigger-icon">⭐</span>
+                        <span class="trigger-name">チャンス目</span>
+                    </button>
+                    <button class="trigger-btn ceiling" data-trigger="ceiling">
+                        <span class="trigger-icon">🔝</span>
+                        <span class="trigger-name">天井</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 小役カウンター -->
+            <div class="counter-section">
+                <span class="section-label">小役カウント</span>
+                <div class="counter-list">
+                    <div class="counter-item bell">
+                        <span class="counter-name">🔔 共通ベル</span>
+                        <div class="counter-controls">
+                            <button class="counter-btn minus" data-role="bell" data-action="minus">−</button>
+                            <span class="counter-value" id="bellCount">0</span>
+                            <button class="counter-btn plus" data-role="bell" data-action="plus">+</button>
+                        </div>
+                        <span class="counter-prob" id="bellProb">--</span>
+                    </div>
+                    <div class="counter-item cherry">
+                        <span class="counter-name">🍒 弱チェリー</span>
+                        <div class="counter-controls">
+                            <button class="counter-btn minus" data-role="weakCherry" data-action="minus">−</button>
+                            <span class="counter-value" id="weakCherryCount">0</span>
+                            <button class="counter-btn plus" data-role="weakCherry" data-action="plus">+</button>
+                        </div>
+                        <span class="counter-prob" id="weakCherryProb">--</span>
+                    </div>
+                    <div class="counter-item watermelon">
+                        <span class="counter-name">🍉 スイカ</span>
+                        <div class="counter-controls">
+                            <button class="counter-btn minus" data-role="watermelon" data-action="minus">−</button>
+                            <span class="counter-value" id="watermelonCount">0</span>
+                            <button class="counter-btn plus" data-role="watermelon" data-action="plus">+</button>
+                        </div>
+                        <span class="counter-prob" id="watermelonProb">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 設定期待度メーター -->
+            <div class="expectation-section">
+                <span class="section-label">設定期待度</span>
+                <div class="expectation-meter">
+                    <div class="meter-bar" id="expectationBar"></div>
+                    <span class="meter-label" id="expectationLabel">--</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 当選履歴タブ -->
+        <section class="tab-content" id="triggersTab">
+            <div class="summary-card">
+                <h3>📝 当選履歴</h3>
+                <p class="section-desc">各ATの当選契機・モードを確認</p>
+                <div class="trigger-history-list" id="triggerHistoryList">
+                    <p class="empty-message">まだ当選データがありません</p>
+                </div>
+            </div>
+
+            <!-- 設定差のある小役情報 -->
+            <div class="summary-card settings-info">
+                <h3>📊 設定差情報（参考値）</h3>
+                <p class="section-desc">スマスロ北斗の拳 設定判別ポイント</p>
+
+                <div class="settings-table">
+                    <h4>🔔 共通ベル確率</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>設定</th>
+                                <th>確率</th>
+                                <th>目安</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>設定1</td>
+                                <td>約1/165</td>
+                                <td class="low">低</td>
+                            </tr>
+                            <tr>
+                                <td>設定2</td>
+                                <td>約1/150</td>
+                                <td class="low">低</td>
+                            </tr>
+                            <tr>
+                                <td>設定3</td>
+                                <td>約1/135</td>
+                                <td class="mid">中</td>
+                            </tr>
+                            <tr>
+                                <td>設定4</td>
+                                <td>約1/120</td>
+                                <td class="mid">中</td>
+                            </tr>
+                            <tr>
+                                <td>設定5</td>
+                                <td>約1/110</td>
+                                <td class="high">高</td>
+                            </tr>
+                            <tr>
+                                <td>設定6</td>
+                                <td>約1/100</td>
+                                <td class="high">高</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="tip">💡 2000Gで18回以上なら設定4以上期待</p>
+                </div>
+
+                <div class="settings-table">
+                    <h4>🍉 スイカ確率（合算）</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>設定</th>
+                                <th>弱スイカ</th>
+                                <th>強スイカ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>設定1</td>
+                                <td>1/109</td>
+                                <td>1/410</td>
+                            </tr>
+                            <tr>
+                                <td>設定6</td>
+                                <td>1/98</td>
+                                <td>1/338</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-table">
+                    <h4>🎯 モード別 弱レア役当選率</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>モード</th>
+                                <th>設定1</th>
+                                <th>設定6</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>地獄</td>
+                                <td>0.15%</td>
+                                <td>1.08%</td>
+                            </tr>
+                            <tr>
+                                <td>通常</td>
+                                <td>0.28%</td>
+                                <td>3.91%</td>
+                            </tr>
+                            <tr>
+                                <td>天国</td>
+                                <td>1.75%</td>
+                                <td>7.14%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="tip">💡 天国での弱レア当選が多いほど高設定期待</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- サマリー画面 -->
+        <section class="tab-content" id="summaryTab">
+            <div class="summary-card">
+                <h3>📊 実戦サマリー</h3>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">総ゲーム数</span>
+                        <span class="stat-value" id="summaryGames">0 G</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">AT初当たり</span>
+                        <span class="stat-value" id="summaryAT">0 回</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">初当たり確率</span>
+                        <span class="stat-value" id="summaryATProb">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>🎯 当選契機内訳</h3>
+                <div class="chart-container">
+                    <canvas id="triggerChart"></canvas>
+                </div>
+                <div class="trigger-breakdown" id="triggerBreakdown"></div>
+            </div>
+
+            <div class="summary-card">
+                <h3>🎰 モード別当選</h3>
+                <div class="mode-breakdown" id="modeBreakdown"></div>
+            </div>
+
+            <div class="summary-card">
+                <h3>📈 小役確率</h3>
+                <div class="prob-list" id="probList"></div>
+            </div>
+
+            <!-- 打ち終わりチェックリスト -->
+            <div class="summary-card checklist">
+                <h3>✅ 振り返りチェック</h3>
+                <label class="check-item">
+                    <input type="checkbox" id="checkBell">
+                    <span>共通ベルは良かったか？</span>
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="checkAT">
+                    <span>初当たりは軽かったか？</span>
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="checkMode">
+                    <span>モード移行は良かったか？</span>
+                </label>
+                <div class="memo-input">
+                    <textarea id="sessionMemo" placeholder="メモを入力..."></textarea>
+                </div>
+            </div>
+
+            <button class="save-btn" id="saveSession">💾 実戦データを保存</button>
+        </section>
+
+        <!-- 履歴画面 -->
+        <section class="tab-content" id="historyTab">
+            <div class="history-header">
+                <h3>📋 過去の実戦</h3>
+            </div>
+            <div class="history-list" id="historyList">
+                <p class="empty-message">まだ実戦データがありません</p>
+            </div>
+        </section>
+
+        <!-- 履歴詳細モーダル -->
+        <div class="modal" id="historyModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">実戦詳細</h3>
+                    <button class="close-modal" id="closeModal">✕</button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-actions">
+                    <button class="delete-btn" id="deleteSession">🗑️ 削除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新規セッションモーダル -->
+        <div class="modal" id="newSessionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>新しい実戦を開始</h3>
+                    <button class="close-modal" id="closeNewSession">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>ホール名</label>
+                        <input type="text" id="hallName" placeholder="例: 楽園町田">
+                    </div>
+                    <div class="form-group">
+                        <label>台番号</label>
+                        <input type="text" id="machineNumber" placeholder="例: 512">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="cancel-btn" id="cancelNewSession">キャンセル</button>
+                    <button class="confirm-btn" id="confirmNewSession">開始</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- トースト通知 -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
