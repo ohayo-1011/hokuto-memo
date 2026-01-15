@@ -32,16 +32,60 @@ const Storage = {
     },
 
     // 新しいセッションを作成
-    createNewSession(hallName = '', machineNumber = '') {
+    createNewSession(hallName = '', machineNumber = '', machineType = 'hokuto') {
         const now = new Date();
-        return {
+        const baseSession = {
             id: `session_${now.getTime()}`,
             date: now.toISOString().split('T')[0],
             startTime: now.toTimeString().slice(0, 5),
             endTime: null,
             hallName,
             machineNumber,
+            machineType,
             totalGames: 0,
+            memo: ''
+        };
+
+        if (machineType === 'magireco') {
+            return {
+                ...baseSession,
+                czCount: 0,
+                czSuccess: 0,
+                atCount: 0,
+                roleCount: {
+                    weakCherry: 0,
+                    strongCherry: 0,
+                    watermelon: 0,
+                    chance: 0
+                },
+                zoneWins: {
+                    under100: 0,
+                    g200: 0,
+                    g300: 0,
+                    over400: 0
+                },
+                endScreens: {
+                    bigBonus: {
+                        kyubey: 0,
+                        season1: 0,
+                        season2: 0,
+                        momoko: 0,
+                        tsuruno: 0,
+                        other: 0
+                    },
+                    at: {
+                        madokaIroha: 0,
+                        magius: 0,
+                        mikazuki: 0,
+                        other: 0
+                    }
+                }
+            };
+        }
+
+        // 北斗の拳（既存）
+        return {
+            ...baseSession,
             triggers: [],
             roleCount: {
                 bell: 0,
@@ -52,8 +96,7 @@ const Storage = {
                 bell: false,
                 at: false,
                 mode: false
-            },
-            memo: ''
+            }
         };
     },
 

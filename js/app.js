@@ -7,6 +7,7 @@ const App = {
     currentMode: 'normal',
     selectedHistoryId: null,
     minusHoldTimer: null,
+    currentMachine: 'hokuto', // 現在の機種
 
     // 契機名マップ
     triggerNames: {
@@ -27,7 +28,7 @@ const App = {
     },
 
     init() {
-        console.log('🌟 北斗メモ 初期化...');
+        console.log('🎰 スロメモ 初期化...');
 
         // Service Worker登録
         if ('serviceWorker' in navigator) {
@@ -38,11 +39,13 @@ const App = {
 
         // セッション読み込み
         this.session = Storage.getCurrentSession();
+        this.currentMachine = this.session.machineType || 'hokuto';
 
         // イベントリスナー設定
         this.setupEventListeners();
 
         // UI更新
+        this.switchMachine(this.currentMachine);
         this.updateUI();
         this.loadHistory();
 
@@ -50,71 +53,96 @@ const App = {
     },
 
     setupEventListeners() {
+        // 機種選択ボタン
+        document.getElementById('machineSelectBtn').addEventListener('click', () => {
+            document.getElementById('machineSelectModal').classList.add('active');
+        });
+
+        document.getElementById('closeMachineSelect').addEventListener('click', () => {
+            document.getElementById('machineSelectModal').classList.remove('active');
+        });
+
+        document.querySelectorAll('.machine-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const machine = e.currentTarget.dataset.machine;
+                this.switchMachine(machine);
+                document.getElementById('machineSelectModal').classList.remove('active');
+            });
+        });
+
         // タブ切り替え
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
 
-        // ゲーム数入力
-        document.getElementById('totalGames').addEventListener('input', (e) => {
-            this.session.totalGames = parseInt(e.target.value) || 0;
-            this.save();
-            this.updateProbabilities();
-            this.updateExpectation();
-        });
-
-        document.getElementById('gamesPlus').addEventListener('click', () => {
-            this.session.totalGames += 100;
-            this.save();
-            this.updateUI();
-        });
-
-        document.getElementById('gamesMinus').addEventListener('click', () => {
-            this.session.totalGames = Math.max(0, this.session.totalGames - 100);
-            this.save();
-            this.updateUI();
-        });
-
-        // モード選択
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.currentMode = e.target.dataset.mode;
+        // 北斗の拳用イベントリスナー
+        if (document.getElementById('totalGames')) {
+            // ゲーム数入力
+            document.getElementById('totalGames').addEventListener('input', (e) => {
+                this.session.totalGames = parseInt(e.target.value) || 0;
+                this.save();
+                this.updateProbabilities();
+                this.updateExpectation();
             });
-        });
 
-        // 当選契機ボタン
-        document.querySelectorAll('.trigger-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const trigger = e.currentTarget.dataset.trigger;
-                this.addTrigger(trigger);
+            document.getElementById('gamesPlus').addEventListener('click', () => {
+                this.session.totalGames += 100;
+                this.save();
+                this.updateUI();
             });
-        });
 
-        // 小役カウンター
-        document.querySelectorAll('.counter-btn').forEach(btn => {
-            const role = btn.dataset.role;
-            const action = btn.dataset.action;
+            document.getElementById('gamesMinus').addEventListener('click', () => {
+                this.session.totalGames = Math.max(0, this.session.totalGames - 100);
+                this.save();
+                this.updateUI();
+            });
 
-            if (action === 'plus') {
-                btn.addEventListener('click', () => {
-                    this.session.roleCount[role]++;
-                    this.save();
-                    this.updateUI();
+            // モード選択
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    this.currentMode = e.target.dataset.mode;
                 });
-            } else {
-                // マイナスは長押し
-                btn.addEventListener('mousedown', () => this.startMinus(role));
-                btn.addEventListener('mouseup', () => this.stopMinus());
-                btn.addEventListener('mouseleave', () => this.stopMinus());
-                btn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    this.startMinus(role);
+            });
+
+            // 当選契機ボタン
+            document.querySelectorAll('.trigger-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const trigger = e.currentTarget.dataset.trigger;
+                    this.addTrigger(trigger);
                 });
-                btn.addEventListener('touchend', () => this.stopMinus());
-            }
-        });
+            });
+
+            // 小役カウンター
+            document.querySelectorAll('#hokutoContent .counter-btn').forEach(btn => {
+                const role = btn.dataset.role;
+                const action = btn.dataset.action;
+
+                if (action === 'plus') {
+                    btn.addEventListener('click', () => {
+                        this.session.roleCount[role]++;
+                        this.save();
+                        this.updateUI();
+                    });
+                } else {
+                    // マイナスは長押し
+                    btn.addEventListener('mousedown', () => this.startMinus(role));
+                    btn.addEventListener('mouseup', () => this.stopMinus());
+                    btn.addEventListener('mouseleave', () => this.stopMinus());
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        this.startMinus(role);
+                    });
+                    btn.addEventListener('touchend', () => this.stopMinus());
+                }
+            });
+        }
+
+        // マギアレコード用イベントリスナー
+        if (typeof MagirecoApp !== 'undefined') {
+            MagirecoApp.setupEventListeners();
+        }
 
         // 新規セッション
         document.getElementById('newSessionBtn').addEventListener('click', () => {
@@ -132,7 +160,8 @@ const App = {
         document.getElementById('confirmNewSession').addEventListener('click', () => {
             const hallName = document.getElementById('hallName').value;
             const machineNumber = document.getElementById('machineNumber').value;
-            this.startNewSession(hallName, machineNumber);
+            const machineType = document.getElementById('machineType').value;
+            this.startNewSession(hallName, machineNumber, machineType);
             document.getElementById('newSessionModal').classList.remove('active');
         });
 
@@ -142,41 +171,73 @@ const App = {
         });
 
         // セッション保存
-        document.getElementById('saveSession').addEventListener('click', () => {
-            this.saveSessionToHistory();
-        });
+        if (document.getElementById('saveSession')) {
+            document.getElementById('saveSession').addEventListener('click', () => {
+                this.saveSessionToHistory();
+            });
+        }
 
-        // チェックリスト
-        document.getElementById('checkBell').addEventListener('change', (e) => {
-            this.session.checklist.bell = e.target.checked;
-            this.save();
-        });
-        document.getElementById('checkAT').addEventListener('change', (e) => {
-            this.session.checklist.at = e.target.checked;
-            this.save();
-        });
-        document.getElementById('checkMode').addEventListener('change', (e) => {
-            this.session.checklist.mode = e.target.checked;
-            this.save();
-        });
-        document.getElementById('sessionMemo').addEventListener('input', (e) => {
-            this.session.memo = e.target.value;
-            this.save();
-        });
+        // チェックリスト（北斗のみ）
+        if (document.getElementById('checkBell')) {
+            document.getElementById('checkBell').addEventListener('change', (e) => {
+                this.session.checklist.bell = e.target.checked;
+                this.save();
+            });
+            document.getElementById('checkAT').addEventListener('change', (e) => {
+                this.session.checklist.at = e.target.checked;
+                this.save();
+            });
+            document.getElementById('checkMode').addEventListener('change', (e) => {
+                this.session.checklist.mode = e.target.checked;
+                this.save();
+            });
+        }
+
+        if (document.getElementById('sessionMemo')) {
+            document.getElementById('sessionMemo').addEventListener('input', (e) => {
+                this.session.memo = e.target.value;
+                this.save();
+            });
+        }
 
         // 履歴モーダル
-        document.getElementById('closeModal').addEventListener('click', () => {
-            document.getElementById('historyModal').classList.remove('active');
-        });
-
-        document.getElementById('deleteSession').addEventListener('click', () => {
-            if (this.selectedHistoryId && confirm('この実戦データを削除しますか？')) {
-                Storage.deleteSession(this.selectedHistoryId);
+        if (document.getElementById('closeModal')) {
+            document.getElementById('closeModal').addEventListener('click', () => {
                 document.getElementById('historyModal').classList.remove('active');
-                this.loadHistory();
-                this.showToast('削除しました');
-            }
-        });
+            });
+        }
+
+        if (document.getElementById('deleteSession')) {
+            document.getElementById('deleteSession').addEventListener('click', () => {
+                if (this.selectedHistoryId && confirm('この実戦データを削除しますか？')) {
+                    Storage.deleteSession(this.selectedHistoryId);
+                    document.getElementById('historyModal').classList.remove('active');
+                    this.loadHistory();
+                    this.showToast('削除しました');
+                }
+            });
+        }
+    },
+
+    // 機種切り替え
+    switchMachine(machine) {
+        this.currentMachine = machine;
+
+        // UI切り替え
+        const hokutoContent = document.getElementById('hokutoContent');
+        const magirecoContent = document.getElementById('magirecoContent');
+
+        if (machine === 'hokuto') {
+            hokutoContent.style.display = 'block';
+            magirecoContent.style.display = 'none';
+            document.getElementById('appTitle').textContent = '🌟 北斗の拳';
+        } else {
+            hokutoContent.style.display = 'none';
+            magirecoContent.style.display = 'block';
+            document.getElementById('appTitle').textContent = '✨ マギアレコード';
+        }
+
+        this.updateUI();
     },
 
     // 長押しマイナス
@@ -333,6 +394,14 @@ const App = {
 
     // UI更新
     updateUI() {
+        if (this.currentMachine === 'magireco') {
+            if (typeof MagirecoApp !== 'undefined') {
+                MagirecoApp.updateUI();
+            }
+            return;
+        }
+
+        // 北斗の拳用UI更新
         // ゲーム数
         document.getElementById('totalGames').value = this.session.totalGames;
 

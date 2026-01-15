@@ -7,24 +7,25 @@
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>北斗メモ - 実戦記録</title>
-    <meta name="description" content="北斗の拳スマスロ実戦メモアプリ。当選契機・小役をワンタップ記録。">
+    <title>スロメモ - 設定判別アプリ</title>
+    <meta name="description" content="スマスロ設定判別メモアプリ。北斗の拳・マギアレコード対応。">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <!-- OGP Settings -->
-    <meta property="og:title" content="北斗メモ - スマスロ北斗の拳 実戦記録アプリ">
-    <meta property="og:description" content="当選契機や小役確率をワンタップで記録！設定判別要素も搭載した、北斗打ちのための実戦サポートツール。">
+    <meta property="og:title" content="スロメモ - スマスロ設定判別アプリ">
+    <meta property="og:description" content="北斗の拳・マギアレコードの設定判別をサポート。当選契機や小役確率をワンタップで記録！">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://raw.githubusercontent.com/antigravity-assets/hokuto-memo/main/ogp.png">
     <!-- デプロイ後に差し替え推奨 -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="北斗メモ - スマスロ北斗の拳 実戦記録アプリ">
-    <meta name="twitter:description" content="パチスロ北斗の拳の実戦データをスマホで簡単記録。設定推測に役立つモード別当選率なども掲載！">
+    <meta name="twitter:title" content="スロメモ - スマスロ設定判別アプリ">
+    <meta name="twitter:description" content="パチスロ設定判別をスマホで簡単記録。北斗の拳・マギアレコード対応！">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/magireco.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Google Analytics -->
@@ -41,8 +42,9 @@
     <div id="app">
         <!-- ヘッダー -->
         <header class="header">
-            <h1>🌟 北斗メモ</h1>
+            <h1 id="appTitle">🎰 スロメモ</h1>
             <div class="header-actions">
+                <button class="icon-btn" id="machineSelectBtn" title="機種選択">🎮</button>
                 <button class="icon-btn" id="historyBtn" title="履歴">📋</button>
                 <button class="icon-btn" id="newSessionBtn" title="新規実戦">➕</button>
             </div>
@@ -57,107 +59,227 @@
 
         <!-- メイン画面（実戦中） -->
         <section class="tab-content active" id="mainTab">
-            <!-- ステータスバー -->
-            <div class="status-bar">
-                <div class="status-item">
-                    <span class="status-label">総G数</span>
-                    <div class="game-input-group">
-                        <button class="game-btn minus" id="gamesMinus">−</button>
-                        <input type="number" id="totalGames" value="0" min="0">
-                        <button class="game-btn plus" id="gamesPlus">+</button>
-                    </div>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">AT初当たり</span>
-                    <span class="status-value highlight" id="atCount">0</span>
-                </div>
-            </div>
-
-            <!-- モード選択 -->
-            <div class="mode-section">
-                <span class="section-label">モード選択</span>
-                <div class="mode-buttons">
-                    <button class="mode-btn active" data-mode="normal">通常</button>
-                    <button class="mode-btn heaven" data-mode="heaven">天国</button>
-                    <button class="mode-btn hell" data-mode="hell">地獄</button>
-                </div>
-            </div>
-
-            <!-- 当選契機ボタン -->
-            <div class="trigger-section">
-                <span class="section-label">当選契機をタップ</span>
-                <div class="trigger-grid">
-                    <button class="trigger-btn mystery" data-trigger="mystery">
-                        <span class="trigger-icon">❓</span>
-                        <span class="trigger-name">謎当たり</span>
-                    </button>
-                    <button class="trigger-btn weak-cherry" data-trigger="weak_cherry">
-                        <span class="trigger-icon">🍒</span>
-                        <span class="trigger-name">弱チェリー</span>
-                    </button>
-                    <button class="trigger-btn weak-watermelon" data-trigger="weak_watermelon">
-                        <span class="trigger-icon">🍉</span>
-                        <span class="trigger-name">弱スイカ</span>
-                    </button>
-                    <button class="trigger-btn strong-watermelon" data-trigger="strong_watermelon">
-                        <span class="trigger-icon">🍉</span>
-                        <span class="trigger-name">強スイカ</span>
-                    </button>
-                    <button class="trigger-btn mid-cherry" data-trigger="mid_cherry">
-                        <span class="trigger-icon">🍒🍒</span>
-                        <span class="trigger-name">中段チェリー</span>
-                    </button>
-                    <button class="trigger-btn chance" data-trigger="chance">
-                        <span class="trigger-icon">⭐</span>
-                        <span class="trigger-name">チャンス目</span>
-                    </button>
-                    <button class="trigger-btn ceiling" data-trigger="ceiling">
-                        <span class="trigger-icon">🔝</span>
-                        <span class="trigger-name">天井</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 小役カウンター -->
-            <div class="counter-section">
-                <span class="section-label">小役カウント</span>
-                <div class="counter-list">
-                    <div class="counter-item bell">
-                        <span class="counter-name">🔔 共通ベル</span>
-                        <div class="counter-controls">
-                            <button class="counter-btn minus" data-role="bell" data-action="minus">−</button>
-                            <span class="counter-value" id="bellCount">0</span>
-                            <button class="counter-btn plus" data-role="bell" data-action="plus">+</button>
+            <!-- 北斗の拳用コンテンツ -->
+            <div id="hokutoContent" class="machine-content">
+                <!-- ステータスバー -->
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="status-label">総G数</span>
+                        <div class="game-input-group">
+                            <button class="game-btn minus" id="gamesMinus">−</button>
+                            <input type="number" id="totalGames" value="0" min="0">
+                            <button class="game-btn plus" id="gamesPlus">+</button>
                         </div>
-                        <span class="counter-prob" id="bellProb">--</span>
                     </div>
-                    <div class="counter-item cherry">
-                        <span class="counter-name">🍒 弱チェリー</span>
-                        <div class="counter-controls">
-                            <button class="counter-btn minus" data-role="weakCherry" data-action="minus">−</button>
-                            <span class="counter-value" id="weakCherryCount">0</span>
-                            <button class="counter-btn plus" data-role="weakCherry" data-action="plus">+</button>
-                        </div>
-                        <span class="counter-prob" id="weakCherryProb">--</span>
+                    <div class="status-item">
+                        <span class="status-label">AT初当たり</span>
+                        <span class="status-value highlight" id="atCount">0</span>
                     </div>
-                    <div class="counter-item watermelon">
-                        <span class="counter-name">🍉 スイカ</span>
-                        <div class="counter-controls">
-                            <button class="counter-btn minus" data-role="watermelon" data-action="minus">−</button>
-                            <span class="counter-value" id="watermelonCount">0</span>
-                            <button class="counter-btn plus" data-role="watermelon" data-action="plus">+</button>
+                </div>
+
+                <!-- モード選択 -->
+                <div class="mode-section">
+                    <span class="section-label">モード選択</span>
+                    <div class="mode-buttons">
+                        <button class="mode-btn active" data-mode="normal">通常</button>
+                        <button class="mode-btn heaven" data-mode="heaven">天国</button>
+                        <button class="mode-btn hell" data-mode="hell">地獄</button>
+                    </div>
+                </div>
+
+                <!-- 当選契機ボタン -->
+                <div class="trigger-section">
+                    <span class="section-label">当選契機をタップ</span>
+                    <div class="trigger-grid">
+                        <button class="trigger-btn mystery" data-trigger="mystery">
+                            <span class="trigger-icon">❓</span>
+                            <span class="trigger-name">謎当たり</span>
+                        </button>
+                        <button class="trigger-btn weak-cherry" data-trigger="weak_cherry">
+                            <span class="trigger-icon">🍒</span>
+                            <span class="trigger-name">弱チェリー</span>
+                        </button>
+                        <button class="trigger-btn weak-watermelon" data-trigger="weak_watermelon">
+                            <span class="trigger-icon">🍉</span>
+                            <span class="trigger-name">弱スイカ</span>
+                        </button>
+                        <button class="trigger-btn strong-watermelon" data-trigger="strong_watermelon">
+                            <span class="trigger-icon">🍉</span>
+                            <span class="trigger-name">強スイカ</span>
+                        </button>
+                        <button class="trigger-btn mid-cherry" data-trigger="mid_cherry">
+                            <span class="trigger-icon">🍒🍒</span>
+                            <span class="trigger-name">中段チェリー</span>
+                        </button>
+                        <button class="trigger-btn chance" data-trigger="chance">
+                            <span class="trigger-icon">⭐</span>
+                            <span class="trigger-name">チャンス目</span>
+                        </button>
+                        <button class="trigger-btn ceiling" data-trigger="ceiling">
+                            <span class="trigger-icon">🔝</span>
+                            <span class="trigger-name">天井</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 小役カウンター -->
+                <div class="counter-section">
+                    <span class="section-label">小役カウント</span>
+                    <div class="counter-list">
+                        <div class="counter-item bell">
+                            <span class="counter-name">🔔 共通ベル</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn minus" data-role="bell" data-action="minus">−</button>
+                                <span class="counter-value" id="bellCount">0</span>
+                                <button class="counter-btn plus" data-role="bell" data-action="plus">+</button>
+                            </div>
+                            <span class="counter-prob" id="bellProb">--</span>
                         </div>
-                        <span class="counter-prob" id="watermelonProb">--</span>
+                        <div class="counter-item cherry">
+                            <span class="counter-name">🍒 弱チェリー</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn minus" data-role="weakCherry" data-action="minus">−</button>
+                                <span class="counter-value" id="weakCherryCount">0</span>
+                                <button class="counter-btn plus" data-role="weakCherry" data-action="plus">+</button>
+                            </div>
+                            <span class="counter-prob" id="weakCherryProb">--</span>
+                        </div>
+                        <div class="counter-item watermelon">
+                            <span class="counter-name">🍉 スイカ</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn minus" data-role="watermelon" data-action="minus">−</button>
+                                <span class="counter-value" id="watermelonCount">0</span>
+                                <button class="counter-btn plus" data-role="watermelon" data-action="plus">+</button>
+                            </div>
+                            <span class="counter-prob" id="watermelonProb">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 設定期待度メーター -->
+                <div class="expectation-section">
+                    <span class="section-label">設定期待度</span>
+                    <div class="expectation-meter">
+                        <div class="meter-bar" id="expectationBar"></div>
+                        <span class="meter-label" id="expectationLabel">--</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 設定期待度メーター -->
-            <div class="expectation-section">
-                <span class="section-label">設定期待度</span>
-                <div class="expectation-meter">
-                    <div class="meter-bar" id="expectationBar"></div>
-                    <span class="meter-label" id="expectationLabel">--</span>
+            <!-- マギアレコード用コンテンツ -->
+            <div id="magirecoContent" class="machine-content" style="display:none;">
+                <!-- ステータスバー -->
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="status-label">総G数</span>
+                        <div class="game-input-group">
+                            <button class="game-btn minus" id="mgGamesMinus">−</button>
+                            <input type="number" id="mgTotalGames" value="0" min="0">
+                            <button class="game-btn plus" id="mgGamesPlus">+</button>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">AT回数</span>
+                        <span class="status-value highlight" id="mgAtCount">0</span>
+                    </div>
+                </div>
+
+                <!-- 小役カウンター -->
+                <div class="counter-section">
+                    <span class="section-label">小役カウント</span>
+                    <div class="counter-list">
+                        <div class="counter-item cherry">
+                            <span class="counter-name">🍒 弱チェリー</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn minus" data-role="mgWeakCherry">−</button>
+                                <span class="counter-value" id="mgWeakCherryCount">0</span>
+                                <button class="counter-btn plus" data-role="mgWeakCherry">+</button>
+                            </div>
+                            <span class="counter-prob" id="mgWeakCherryProb">--</span>
+                        </div>
+                        <div class="counter-item watermelon">
+                            <span class="counter-name">🍉 スイカ</span>
+                            <div class="counter-controls">
+                                <button class="counter-btn minus" data-role="mgWatermelon">−</button>
+                                <span class="counter-value" id="mgWatermelonCount">0</span>
+                                <button class="counter-btn plus" data-role="mgWatermelon">+</button>
+                            </div>
+                            <span class="counter-prob" id="mgWatermelonProb">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CZ管理 -->
+                <div class="cz-section">
+                    <span class="section-label">CZ（マギカチャレンジ）</span>
+                    <div class="cz-stats">
+                        <div class="cz-stat-item">
+                            <span class="cz-label">突入回数</span>
+                            <div class="cz-controls">
+                                <button class="counter-btn minus" data-role="czCount">−</button>
+                                <span class="counter-value" id="mgCzCount">0</span>
+                                <button class="counter-btn plus" data-role="czCount">+</button>
+                            </div>
+                        </div>
+                        <div class="cz-stat-item">
+                            <span class="cz-label">成功回数</span>
+                            <div class="cz-controls">
+                                <button class="counter-btn minus" data-role="czSuccess">−</button>
+                                <span class="counter-value" id="mgCzSuccess">0</span>
+                                <button class="counter-btn plus" data-role="czSuccess">+</button>
+                            </div>
+                        </div>
+                        <div class="cz-stat-item">
+                            <span class="cz-label">成功率</span>
+                            <span class="cz-rate" id="mgCzRate">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ゾーン別当選 -->
+                <div class="zone-section">
+                    <span class="section-label">ゾーン別当選</span>
+                    <div class="zone-grid">
+                        <button class="zone-btn" data-zone="under100">
+                            <span class="zone-name">〜100G</span>
+                            <span class="zone-count" id="mgZoneUnder100">0</span>
+                        </button>
+                        <button class="zone-btn" data-zone="g200">
+                            <span class="zone-name">200G台</span>
+                            <span class="zone-count" id="mgZoneG200">0</span>
+                        </button>
+                        <button class="zone-btn" data-zone="g300">
+                            <span class="zone-name">300G台</span>
+                            <span class="zone-count" id="mgZoneG300">0</span>
+                        </button>
+                        <button class="zone-btn" data-zone="over400">
+                            <span class="zone-name">400G〜</span>
+                            <span class="zone-count" id="mgZoneOver400">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 終了画面 -->
+                <div class="ending-section">
+                    <span class="section-label">BIG終了画面</span>
+                    <div class="ending-grid">
+                        <button class="ending-btn" data-screen="kyubey">
+                            <span class="ending-name">キュゥべえ</span>
+                            <span class="ending-count" id="mgEndKyubey">0</span>
+                        </button>
+                        <button class="ending-btn" data-screen="season1">
+                            <span class="ending-name">1st Season</span>
+                            <span class="ending-count" id="mgEndSeason1">0</span>
+                        </button>
+                        <button class="ending-btn" data-screen="season2">
+                            <span class="ending-name">2nd Season</span>
+                            <span class="ending-count" id="mgEndSeason2">0</span>
+                        </button>
+                        <button class="ending-btn" data-screen="momoko">
+                            <span class="ending-name">ももこチーム</span>
+                            <span class="ending-count" id="mgEndMomoko">0</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -366,6 +488,28 @@
             </div>
         </div>
 
+        <!-- 機種選択モーダル -->
+        <div class="modal" id="machineSelectModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>機種を選択</h3>
+                    <button class="close-modal" id="closeMachineSelect">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="machine-grid">
+                        <button class="machine-card" data-machine="hokuto">
+                            <span class="machine-icon">🌟</span>
+                            <span class="machine-name">北斗の拳</span>
+                        </button>
+                        <button class="machine-card" data-machine="magireco">
+                            <span class="machine-icon">✨</span>
+                            <span class="machine-name">マギアレコード</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 新規セッションモーダル -->
         <div class="modal" id="newSessionModal">
             <div class="modal-content">
@@ -374,6 +518,13 @@
                     <button class="close-modal" id="closeNewSession">✕</button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label>機種</label>
+                        <select id="machineType">
+                            <option value="hokuto">北斗の拳</option>
+                            <option value="magireco">マギアレコード</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>ホール名</label>
                         <input type="text" id="hallName" placeholder="例: パチスロプラザ">
@@ -396,6 +547,7 @@
 
     <script src="js/storage.js"></script>
     <script src="js/charts.js"></script>
+    <script src="js/magireco.js"></script>
     <script src="js/app.js"></script>
 </body>
 

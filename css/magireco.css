@@ -1,0 +1,191 @@
+/* マギアレコード用スタイル */
+
+/* CZセクション */
+.cz-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.cz-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.cz-stat-item {
+    background: var(--bg-input);
+    border-radius: var(--border-radius-sm);
+    padding: 12px;
+    text-align: center;
+}
+
+.cz-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.cz-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.cz-rate {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+/* ゾーンセクション */
+.zone-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.zone-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.zone-btn {
+    background: var(--bg-input);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 16px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.zone-btn:active {
+    transform: scale(0.95);
+    background: var(--accent-blue);
+}
+
+.zone-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.zone-count {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+/* 終了画面セクション */
+.ending-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.ending-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.ending-btn {
+    background: var(--bg-input);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ending-btn:active {
+    transform: scale(0.95);
+    background: var(--accent-pink);
+}
+
+.ending-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.ending-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-yellow);
+}
+
+/* 機種選択モーダル */
+.machine-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.machine-card {
+    background: var(--bg-input);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.machine-card:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-secondary);
+}
+
+.machine-card:active {
+    transform: scale(0.95);
+}
+
+.machine-icon {
+    font-size: 48px;
+}
+
+.machine-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* 機種コンテンツ */
+.machine-content {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
