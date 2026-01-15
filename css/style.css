@@ -764,6 +764,7 @@ body {
     background: var(--bg-input);
     border-radius: var(--border-radius-sm);
     border-left: 4px solid var(--accent-blue);
+    position: relative;
 }
 
 .trigger-history-item.mode-heaven {
@@ -876,4 +877,27 @@ body {
     padding: 8px;
     background: rgba(251, 191, 36, 0.1);
     border-radius: var(--border-radius-sm);
+}
+
+/* 当選履歴削除ボタン */
+.trigger-delete-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.trigger-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--accent-red);
+}
+
+.trigger-delete-btn:active {
+    transform: scale(0.9);
 }

@@ -238,6 +238,23 @@ const App = {
         this.showToast(`${this.triggerNames[type]}（${modeName}）を記録`);
     },
 
+    // 当選契機削除
+    deleteTrigger(index) {
+        if (index < 0 || index >= this.session.triggers.length) return;
+
+        const trigger = this.session.triggers[index];
+        const triggerName = this.triggerNames[trigger.type] || trigger.type;
+
+        if (confirm(`${index + 1}回目の当選（${triggerName}）を削除しますか？`)) {
+            this.session.triggers.splice(index, 1);
+            this.save();
+            this.updateUI();
+            this.updateTriggerHistory();
+            this.showToast('削除しました');
+        }
+    },
+
+
     // 当選履歴更新
     updateTriggerHistory() {
         const container = document.getElementById('triggerHistoryList');
@@ -258,9 +275,19 @@ const App = {
                     <div class="trigger-meta">${t.time} / ${t.games.toLocaleString()}G時点</div>
                 </div>
                 <span class="trigger-mode ${t.mode}">${this.modeNames[t.mode] || '通常'}</span>
+                <button class="trigger-delete-btn" data-index="${i}" title="削除">🗑️</button>
             </div>
             `;
         }).join('');
+
+        // 削除ボタンのイベントリスナーを追加
+        container.querySelectorAll('.trigger-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(e.currentTarget.dataset.index);
+                this.deleteTrigger(index);
+            });
+        });
     },
 
     // 新規セッション開始
